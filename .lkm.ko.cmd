@@ -1,1 +1,0 @@
-cmd_/home/awesome/workspace/KERNEL-sk_buff-helloWorld-back/lkm.ko := ld -r -m elf_x86_64  -z max-page-size=0x200000 -T ./scripts/module-common.lds  --build-id  -o /home/awesome/workspace/KERNEL-sk_buff-helloWorld-back/lkm.ko /home/awesome/workspace/KERNEL-sk_buff-helloWorld-back/lkm.o /home/awesome/workspace/KERNEL-sk_buff-helloWorld-back/lkm.mod.o ;  true
