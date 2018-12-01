@@ -23,7 +23,7 @@ To import/remove the module, type in the cli:
 
 ```rmmod lkm.ko```
 
-When imported, the module will send 1 udp packet with helloworld payload broadcasting on the link layer and using ipv4 192.168.0.1(2) addresses.
+When imported, the module will send 1 udp packet with helloworld payload multicasted on the link layer and using IPv6
 
 LKM uses sk_buff in the Linux kernel
 
