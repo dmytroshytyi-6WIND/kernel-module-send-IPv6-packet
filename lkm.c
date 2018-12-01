@@ -1,10 +1,10 @@
 /**
  * @file    lkm.c
  * @author  Dmytro Shytyi
- * @date    14 Octobre 2018
+ * @date    01 Decembre 2018
  * @version 0.1
  * @brief  A "Hello World!" loadable kernel module (LKM) that sends Hello World udp packet.
- * @see https://dmytro.shytyi.net/ for a full description and follow-up descriptions.
+ * @see https://dmytro.shytyi.net/ for a full description 
 */
  
 #include <linux/init.h>             // Macros used to mark up functions e.g., __init __exit
@@ -27,6 +27,9 @@
 //#include <linux/string.h>
 #include <linux/ip.h> 
 #include <linux/udp.h>
+#include <linux/ipv6.h>
+
+
 MODULE_LICENSE("GPL");              ///< The license type -- this affects runtime behavior
 MODULE_AUTHOR("Dmytro Shytyi");      ///< The author -- visible when you use modinfo
 MODULE_DESCRIPTION("A simple linux kernel module - send hello world packet.");  ///< The description -- see modinfo
@@ -42,20 +45,12 @@ static int __init helloLKM_init(void){
 	struct net_device *enp0s3;
 	enp0s3 = dev_get_by_name(&init_net,"enp0s3");
 	memcpy(dest_addr, addr,ETH_ALEN);
-	proto = ETH_P_IP;
+	proto = ETH_P_IPV6;
 	send_my(enp0s3,dest_addr,proto);
 	printk(KERN_INFO "Hello from the  LKM!\n" );
    return 0;
 }
 
-unsigned int inet_addr(char *str)
-{
-    int a, b, c, d;
-    char arr[4];
-    sscanf(str, "%d.%d.%d.%d", &a, &b, &c, &d);
-    arr[0] = a; arr[1] = b; arr[2] = c; arr[3] = d;
-    return *(unsigned int *)arr;
-}
 
 int
 send_my(struct net_device* dev, uint8_t dest_addr[ETH_ALEN], uint16_t proto)
@@ -63,8 +58,11 @@ send_my(struct net_device* dev, uint8_t dest_addr[ETH_ALEN], uint16_t proto)
   int            ret;
   unsigned char* data;
   
-  char *srcIP = "192.168.0.1";
-  char *dstIP = "192.168.0.2";
+
+  struct in6_addr saddr = {{{ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 }}};
+  struct in6_addr daddr = {{{ 0xff,02,0,0,0,0,0,0,0,0,0,0,0,0,0,1}}};
+
+
   char *hello_world = ">>> KERNEL sk_buff Hello World <<< by Dmytro Shytyi";
   int data_len = 51;
 
@@ -72,7 +70,7 @@ send_my(struct net_device* dev, uint8_t dest_addr[ETH_ALEN], uint16_t proto)
   int udp_payload_len = data_len;
   int udp_total_len = udp_header_len+udp_payload_len;
 
-  int ip_header_len = 20;
+  int ip_header_len = 40;
   int ip_payload_len = udp_total_len;
   int ip_total_len = ip_header_len + ip_payload_len;
 
@@ -90,18 +88,14 @@ send_my(struct net_device* dev, uint8_t dest_addr[ETH_ALEN], uint16_t proto)
   uh->source = htons(15934);
   uh->dest = htons(15904);
 
-/* IP header */
-  struct iphdr* iph = (struct iphdr*)skb_push(skb,ip_header_len);
-  iph->ihl = ip_header_len/4;//4*5=20 ip_header_len
-  iph->version = 4; // IPv4u
-  iph->tos = 0; 
-  iph->tot_len=htons(ip_total_len); 
-  iph->frag_off = 0; 
-  iph->ttl = 64; // Set a TTL.
-  iph->protocol = IPPROTO_UDP; //  protocol.
-  iph->check = 0; 
-  iph->saddr = inet_addr(srcIP);
-  iph->daddr = inet_addr(dstIP);
+  /* IPv6 header */
+
+  struct ipv6hdr *iph = (struct ipv6hdr*)skb_push(skb,sizeof(struct ipv6hdr));
+  iph->version = 6;
+  iph->nexthdr = IPPROTO_UDP;
+  iph->payload_len = htons(udp_total_len);
+  iph->saddr = saddr;
+  iph->daddr = daddr;
 
   /*changing Mac address */
   struct ethhdr* eth = (struct ethhdr*)skb_push(skb, sizeof (struct ethhdr));//add data to the start of a buffer
