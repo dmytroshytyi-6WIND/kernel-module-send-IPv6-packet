@@ -1,5 +1,5 @@
 # About this kernel module
-Result of the working LKM is presented on the next screenshot (produced by WireShark).
+This Linux Kernel Module send IPv6 multicast packet. Result of the working LKM (IPv6 packet) is presented on the next screenshot (produced by WireShark).
 
 ![alt text](https://github.com/dmytroshytyi/KERNEL-sk_buff-helloWorld/blob/master/sample.png "Screenshot 1")
 
